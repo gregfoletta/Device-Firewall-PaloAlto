@@ -37,7 +37,6 @@ my %WriteMakefileArgs = (
     "warnings" => 0
   },
   "TEST_REQUIRES" => {
-    "Device::Firewall::PaloAlto::Op::SystemInfo" => 0,
     "Test::More" => 0,
     "Test::UseAllModules" => 0,
     "Test::Warn" => 0
@@ -55,7 +54,6 @@ my %FallbackPrereqs = (
   "Data::Dumper" => 0,
   "Data::Structure::Util" => 0,
   "DateTime::Format::Strptime" => 0,
-  "Device::Firewall::PaloAlto::Op::SystemInfo" => 0,
   "Exporter" => 0,
   "HTTP::Request" => 0,
   "Hook::LexWrap" => 0,
