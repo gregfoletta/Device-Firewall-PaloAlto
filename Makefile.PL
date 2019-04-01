@@ -37,7 +37,6 @@ my %WriteMakefileArgs = (
     "warnings" => 0
   },
   "TEST_REQUIRES" => {
-    "Data::Printer" => 0,
     "Test::More" => 0,
     "Test::UseAllModules" => 0,
     "Test::Warn" => 0
@@ -53,7 +52,6 @@ my %FallbackPrereqs = (
   "Carp" => 0,
   "Class::Error" => 0,
   "Data::Dumper" => 0,
-  "Data::Printer" => 0,
   "Data::Structure::Util" => 0,
   "DateTime::Format::Strptime" => 0,
   "Exporter" => 0,
