@@ -40,6 +40,23 @@ sub _new {
     return bless \%arp_table, $class;
 }
 
+=head2 entry 
+
+Takes an IP address and returns a L<Device::Firewall::PaloAlto::Op::ARPEntry> object representing the ARP entry. 
+
+If the ARP entry doesn't exist, it returns a L<Class::Error> object.
+
+=cut
+
+sub entry {
+    my $self = shift;
+    my ($ip) = @_;
+    my $entry = $self->{entries}{$ip};
+
+    return $entry ? $entry : Class::Error->new('ARP entry not found', 0);
+}
+
+
 =head2 current_entries
 
     say "Current ARP entries: ". $fw->op->arp_table->current_entries;
