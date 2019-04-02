@@ -12,6 +12,8 @@ use XML::Twig;
 use Class::Error;
 use Hook::LexWrap;
 
+use Device::Firewall::PaloAlto::Errors qw(ERROR);
+
 # VERSION
 # PODNAME
 # ABSTRACT: Palo Alto firewall API module
@@ -203,22 +205,6 @@ sub _debug_post_wrap {
     say "RESPONSE:";
     say $http_response->as_string;
 }
-
-
-sub ERROR {
-    my ($errstring, $errno) = @_;
-    
-    # Are we in a one liner? If so, we croak out straight away
-    my ($sub, $file, $inc);
-    while (!defined $sub or $sub ne 'main') { 
-        ($sub, $file) = caller(++$inc);
-    } 
-    
-    croak $errstring if $file eq '-e';
-
-    return Class::Error->new($errstring, $errno);
-}
-
 
 
 

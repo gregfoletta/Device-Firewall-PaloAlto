@@ -10,6 +10,7 @@ use Device::Firewall::PaloAlto::Op::Interfaces;
 use Device::Firewall::PaloAlto::Op::ARPTable;
 use Device::Firewall::PaloAlto::Op::VirtualRouter;
 use Device::Firewall::PaloAlto::Op::Tunnels;
+use Device::Firewall::PaloAlto::Op::GlobalCounters;
 
 use XML::LibXML;
 
@@ -123,6 +124,28 @@ sub tunnels {
         $self->_send_op_cmd('show vpn ipsec-sa') 
     );
 }
+
+=head2 global_counters
+
+Returns a L<Device::Firewall::PaloAlto::Op::GlobalCounters> object representing the global counters.
+
+=cut
+
+sub global_counters {
+    my $self = shift;
+    my %args = @_;
+
+    $args{delta} //= 0;
+    my @cmd = $args{delta} ? 
+        ('show counter global filter delta', 'yes') :
+        ('show counter global');
+    
+    return Device::Firewall::PaloAlto::Op::GlobalCounters->_new(
+        $self->_send_op_cmd(@cmd)
+    );
+}
+
+
 
 sub _send_op_cmd {
     my $self = shift;
