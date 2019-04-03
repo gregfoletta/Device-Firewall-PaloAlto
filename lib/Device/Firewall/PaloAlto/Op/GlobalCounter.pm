@@ -44,11 +44,16 @@ Returns the current rate at which the counter is increasing
 
 The current value of the counter.
 
+=head2 severity
+
+The severity of the counter.
+
 =cut
 
 sub name { return $_[0]->{name} }
 sub rate { return $_[0]->{rate} }
 sub value { return $_[0]->{value} }
+sub severity { return $_[0]->{severity} }
 
 
 1;

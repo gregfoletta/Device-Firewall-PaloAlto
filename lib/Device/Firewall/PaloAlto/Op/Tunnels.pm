@@ -31,6 +31,10 @@ sub _new {
     $tunnels{$_->{name}}{phase_1} = $_ foreach @{$ike_sas->{result}{entry}};
     $tunnels{$_->{gateway}}{phase_2} = $_ foreach @{$ipsec_sas->{result}{entries}{entry}};
 
+    # API CRUFT: there whitespace following the remote IP.
+    $_->{phase_2}{remote} =~ s{\s+$}{} foreach values %tunnels;
+    
+
     # Map the values to tunnel objects, still keyed on the IKE gateway name.
     %tunnels = map { $_ => Device::Firewall::PaloAlto::Op::Tunnel->_new($tunnels{$_}) } keys %tunnels;
 
@@ -51,9 +55,6 @@ sub gw {
     my ($gw) = @_;
     return $self->{$gw}
 };
-
-
-
 
 
 
