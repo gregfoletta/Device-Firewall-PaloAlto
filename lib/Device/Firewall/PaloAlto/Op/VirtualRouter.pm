@@ -39,6 +39,10 @@ sub _new {
     # become arrays. 
 
     for my $route (@routes) {
+        # Is the route active? If not, skip it.
+        # This isn't the ideal implementation - would rather call the
+        # Route object method. FIXME
+        next unless $route->{flags} =~ m{^A};
         my $dst = $route->{destination};
 
         $virtual_router{$dst}{num_routes}++;
