@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use 5.010;
 
-use Test::More tests => 3;
+use Test::More tests => 5;
 use Device::Firewall::PaloAlto::API;
 use Device::Firewall::PaloAlto::Op::SysInfo;
 
@@ -19,4 +19,4 @@ my $sysinfo = Device::Firewall::PaloAlto::Op::SysInfo->_new($api);
 isa_ok( $sysinfo, 'Device::Firewall::PaloAlto::Op::SysInfo' );
 
 is( $sysinfo->hostname, 'PA-VM', 'Hostname' );
-is( $sysinfo->mgmt_ip, '192.168.122.21', 'MGMT IP' ); 
+is( $sysinfo->mgmt_ip, '192.168.122.20', 'MGMT IP' ); 
