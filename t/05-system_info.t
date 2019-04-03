@@ -17,3 +17,6 @@ my $api = Device::Firewall::PaloAlto::API::_check_api_response($xml);
 my $sysinfo = Device::Firewall::PaloAlto::Op::SysInfo->_new($api);
 
 isa_ok( $sysinfo, 'Device::Firewall::PaloAlto::Op::SysInfo' );
+
+is( $sysinfo->hostname, 'PA-VM', 'Hostname' );
+is( $sysinfo->mgmt_ip, '192.168.122.21', 'MGMT IP' ); 

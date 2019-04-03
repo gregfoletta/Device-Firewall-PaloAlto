@@ -24,7 +24,7 @@ isa_ok( $route, 'Device::Firewall::PaloAlto::Op::Route' );
 ok(! $vr->route('100.100.100.100/32'), 'Non-existent route' );
 
 my @routes = $vr->to_array;
-is( scalar @routes, 15, 'Number active routes of routes in array' );
+is( scalar @routes, 16, 'Number active routes of routes in array' );
 
 # Both the virtual routes and the route support the to_json method
 ok( $vr->can('to_json'), 'Virtual router to_json' );
