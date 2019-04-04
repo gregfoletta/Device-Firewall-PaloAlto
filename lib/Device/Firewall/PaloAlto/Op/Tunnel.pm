@@ -31,8 +31,11 @@ sub _new {
 
     # P1 params are in one string split by forward slashes as well
     # as some spaces. We split these out and clean up the spaces.
+    # We don't use the in-place modifier so we can remain compatble with
+    # verions prior to 5.1.4.
+    # https://www.perl.com/pub/2011/05/new-features-of-perl-514-non-destructive-substitution.html/
     $tunnel{phase_1}{params} = [ 
-        map { s{ }{}r }
+        map { my $c = $_; $c =~ s{ }{}; $c }
         split('/', delete $tunnel{phase_1}{algo}) 
     ];
 
