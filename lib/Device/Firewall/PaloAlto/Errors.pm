@@ -29,6 +29,8 @@ This is a parent class containing functions relating to errors.
 
 sub ERROR {
     my ($errstring, $errno) = @_;
+
+    $errno //= 0;
     
     # Are we in a one liner? If so, we croak out straight away
     my ($sub, $file, $inc);
