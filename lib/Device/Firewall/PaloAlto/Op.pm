@@ -11,6 +11,7 @@ use Device::Firewall::PaloAlto::Op::ARPTable;
 use Device::Firewall::PaloAlto::Op::VirtualRouter;
 use Device::Firewall::PaloAlto::Op::Tunnels;
 use Device::Firewall::PaloAlto::Op::GlobalCounters;
+use Device::Firewall::PaloAlto::Op::IPUserMaps;
 
 use XML::LibXML;
 
@@ -143,6 +144,19 @@ sub global_counters {
     return Device::Firewall::PaloAlto::Op::GlobalCounters->_new(
         $self->_send_op_cmd(@cmd)
     );
+}
+
+
+=head2 ip_user_mapping
+
+Returns IP to user mappings
+
+=cut
+
+sub ip_user_mapping {
+    my $self = shift;
+
+    return Device::Firewall::PaloAlto::Op::IPUserMaps->_new( $self->_send_op_cmd('show user ip-user-mapping all') );
 }
 
 
