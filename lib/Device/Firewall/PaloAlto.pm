@@ -7,6 +7,7 @@ use 5.010;
 use parent 'Device::Firewall::PaloAlto::API';
 
 use Device::Firewall::PaloAlto::Op;
+use Device::Firewall::PaloAlto::UserID;
 
 # VERSION
 # PODNAME
@@ -71,7 +72,17 @@ This function authenticates the credentials passed to new against the firewall.
 
 If successful, it returns the object itself to all method calls to be chains. If unsuccessful, it returns a L<Class::Error> object.
 
+=head2 vsys
+
+Sets the virtual system (vsys) ID to which calls will be applied. By default vsys 1 is used.
+
 =cut
+
+sub vsys {
+    my $self = shift;
+    ($self->{vsys_id}) = @_;
+}
+
 
 =head2 op
 
@@ -94,6 +105,16 @@ sub op {
     my $self = shift;
 
     return Device::Firewall::PaloAlto::Op->new($self);
+}
+
+=head2 user_id
+
+
+=cut
+
+sub user_id {  
+    my $self = shift;
+    return Device::Firewall::PaloAlto::UserID->_new($self);
 }
 
 =head2 Errors

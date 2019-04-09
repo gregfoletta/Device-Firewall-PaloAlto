@@ -60,6 +60,10 @@ This function authenticates the credentials passed to new against the firewall.
 
 If successful, it returns the object itself to all method calls to be chains. If unsuccessful, it returns a [Class::Error](https://metacpan.org/pod/Class::Error) object.
 
+## vsys
+
+Sets the virtual system (vsys) ID to which calls will be applied. By default vsys 1 is used.
+
 ## op
 
 Returns a [Device::Firewall::PaloAlto::Op](https://metacpan.org/pod/Device::Firewall::PaloAlto::Op) object. This object has methods to perform operational tasks on the firewall.
@@ -74,6 +78,8 @@ Returns a [Device::Firewall::PaloAlto::Op](https://metacpan.org/pod/Device::Fire
 
      # Returns the routes in the guest_vr virtual router
      my $routes = $fw->op->virtual_router('guest_vr');
+
+## user\_id
 
 ## Errors
 

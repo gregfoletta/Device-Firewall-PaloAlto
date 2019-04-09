@@ -7,7 +7,7 @@ use 5.010;
 use URI;
 use Carp;
 use LWP::UserAgent;
-use HTTP::Request;
+use HTTP::Request::Common;
 use XML::Twig;
 use Class::Error;
 use Hook::LexWrap;
@@ -55,6 +55,7 @@ sub new {
     $object{uri} = $uri;
     $object{user_agent} = LWP::UserAgent->new(ssl_opts => $ssl_opts);
     $object{api_key} = '';
+    $object{vsys_id} = 1;
 
     return bless \%object, $class;
 }
@@ -129,14 +130,12 @@ sub _send_request {
     # If we're authenticated, add the API key
     $query{key} = $self->{api_key} if $self->{api_key};
 
-    # Build the URI query section
-    my $uri = $self->{uri};
-    $uri->query_form( \%query );
-
-    # Create and send the HTTP::Request
-    my $http_request = HTTP::Request->new(GET => $uri->as_string);
-    my $response = $self->_send_raw_request($http_request);
-
+    # Create the request and pass it to the raw request function.
+    # This function exists to allow us to wrap it in debug functions
+    # and see the raw requests and responses
+    my $request = POST $self->{uri}->as_string, [ %query ];
+    my $response = $self->_send_raw_request($request);
+    
     # Check and return
     return _parse_and_check_response( $response );
 }
