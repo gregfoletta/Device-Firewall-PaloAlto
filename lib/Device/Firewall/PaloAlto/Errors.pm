@@ -33,12 +33,7 @@ sub ERROR {
     $errno //= 0;
     
     # Are we in a one liner? If so, we croak out straight away
-    my ($sub, $file, $inc);
-    while (!defined $sub or $sub ne 'main') { 
-        ($sub, $file) = caller(++$inc);
-    } 
-    
-    croak $errstring if $file eq '-e';
+    croak $errstring if (caller())[1] eq '-e';
 
     return Class::Error->new($errstring, $errno);
 }

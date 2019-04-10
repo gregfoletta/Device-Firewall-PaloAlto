@@ -12,6 +12,8 @@ use Device::Firewall::PaloAlto::Op::VirtualRouter;
 use Device::Firewall::PaloAlto::Op::Tunnels;
 use Device::Firewall::PaloAlto::Op::GlobalCounters;
 use Device::Firewall::PaloAlto::Op::IPUserMaps;
+use Device::Firewall::PaloAlto::Op::HA;
+use Device::Firewall::PaloAlto::Op::NTP;
 
 use XML::LibXML;
 
@@ -44,6 +46,29 @@ sub new {
     my ($fw) = @_;
 
     return bless { fw => $fw }, $class;
+}
+
+=head2 vsys
+
+Sets the virtual system (vsys) ID to which calls will be applied. By default vsys 1 is used.
+
+On success reutrns the Device::Firewall::PaloAlto::Op object so calls can be chained together. On failure it returns a L<Class::Error> object.
+
+=cut
+
+sub vsys {
+    my $self = shift;
+    my ($vsys_id) = @_;
+
+    my $vsys_string = "vsys$vsys_id";
+    my $r = $self->_send_op_cmd('set system setting target-vsys', $vsys_string);
+
+    if ($r) {
+        $self->{fw}{active_vsys_id} = $vsys_id;
+        return $self;
+    } else {
+        return $r;
+    }
 }
 
 =head2 system_info
@@ -115,6 +140,9 @@ sub virtual_router {
 
 Returns a L<Device::Firewall::PaloAlto::Op::Tunnels> object representing the current active IPSEC tunnels.
 
+    my $tunnels = $fw->op->tunnels
+    my $client_site = $tunnels->gw('remote_site_gw');
+
 =cut
 
 sub tunnels {
@@ -129,6 +157,10 @@ sub tunnels {
 =head2 global_counters
 
 Returns a L<Device::Firewall::PaloAlto::Op::GlobalCounters> object representing the global counters.
+
+    # Extract out the drop alerts alerts
+    my $counters = $fw->op->global_counters;
+    my @drop_counter = grep { $_->severity eq 'drop' } $counters->to_array;
 
 =cut
 
@@ -149,7 +181,10 @@ sub global_counters {
 
 =head2 ip_user_mapping
 
-Returns IP to user mappings
+Returns a L<Device::Firewall::PaloAlto::Op::IPUserMaps> objects representing the current active IP to user mappings on the device.
+
+    my $maps = $fw->op->ip_user_mapping;
+    my @mappings = grep { $_->user eq 'greg.foleta' } $map->to_array;
 
 =cut
 
@@ -159,12 +194,39 @@ sub ip_user_mapping {
     return Device::Firewall::PaloAlto::Op::IPUserMaps->_new( $self->_send_op_cmd('show user ip-user-mapping all') );
 }
 
+=head2 ha
+
+Returns a L<Device::Firewall::PaloAlto::Op::HA> object representing the current high availability state of the firewall.
+
+    my $ha_info = $fw->op->ha;
+
+=cut
+
+sub ha {
+    my $self = shift;
+
+    return Device::Firewall::PaloAlto::Op::HA->_new( $self->_send_op_cmd('show high-availability state') );
+}
+
+=head2 ntp
+
+Returns a L<Device::Firewall::PaloAlto::Op::NTP> object reresenting the current NTP synchronisation status of the firewall.
+
+=cut
+
+sub ntp {
+    my $self = shift;
+
+    return Device::Firewall::PaloAlto::Op::NTP->_new( $self->_send_op_cmd('show ntp') );
+}
+
+
+
 
 
 sub _send_op_cmd {
     my $self = shift;
     my ($cmd, $var) = @_;
-
 
     return $self->{fw}->_send_request(type => 'op', cmd => _gen_op_xml($cmd, $var));
 }

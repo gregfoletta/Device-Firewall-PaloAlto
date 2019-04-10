@@ -4,10 +4,22 @@ use strict;
 use warnings;
 use 5.010;
 
-use parent 'Device::Firewall::PaloAlto::API';
+use parent qw(
+    Exporter
+    Device::Firewall::PaloAlto::API
+);
 
+# If we're in a one-liner, we export the 'fw()' sub which returns
+# an object. This shortens the one liners.
+our @EXPORT;
+push @EXPORT, 'fw' if (caller())[1] eq '-e';
+
+use Hook::LexWrap;
+
+use Device::Firewall::PaloAlto::Errors qw(ERROR);
 use Device::Firewall::PaloAlto::Op;
 use Device::Firewall::PaloAlto::UserID;
+use Device::Firewall::PaloAlto::Test;
 
 # VERSION
 # PODNAME
@@ -49,6 +61,39 @@ This module provides an interface to the Palo Alto firewall API.
 
 =head1 METHODS
 
+=head2 fw()
+
+This sub (not a class method) is exported automatically into the main:: namespace if the module is
+called from a one-liner - i.e. the calling script name is '-e'.
+
+This shortens the amount of code needed in one liners. As an example
+
+    # Long way
+    % perl -MDevice::Firewall::PaloAlto -E 'Device::Firewall::PaloAlto::new(vefify_hostname => 0)->auth->op->system_info->to_json'
+    
+    # Shorter way
+    % perl -MDevice::Firewall::PaloAlto -E 'fw()->op->system_info->to_json'
+
+The sub takes C<($user, $pass, $verify)> arguments. If C<$user> and C<$pass> arguments are not specified,
+their undefinedness is passed through to C<new()> and either environment variables are used or they default
+to 'admin'. 
+
+If C<$verify> is not specified, C<new()> is called with C<verify_hostname => 0>, and thus the TLS certificate is
+not verified. This is opposite to the default behaviour of C<new()> where the verification is performed.
+
+=cut
+
+sub fw {
+    my ($user, $pass, $verify) = @_;
+    $verify //= 0;
+    return Device::Firewall::PaloAlto::new->(
+        __PACKAGE__,
+        username => $user,
+        password => $pass,
+        verify_hostname => $verify
+    );
+}
+
 =head2 new
 
     my $fw = Device::Firewall::PaloAlto(
@@ -64,6 +109,40 @@ variables are set, the username and password both default to 'admin'.
 
 =cut
 
+sub new {
+    my $class = shift;
+    my %args = @_;
+
+    my %object;
+    my @args_keys = qw(uri username password);
+
+    @object{ @args_keys } = @args{ @args_keys };
+
+    $object{uri} //= $ENV{PA_FW_URI} or return ERROR('No uri specified and no environment variable PA_FW_URI found');
+    $object{username} //= $ENV{PA_FW_USERNAME} // 'admin';
+    $object{password} //= $ENV{PA_FW_PASSWORD} // 'admin';
+
+    $args{verify_hostname} //= 1;
+    my $ssl_opts = { verify_hostname => $args{verify_hostname} };
+
+
+    my $uri = URI->new($object{uri});
+    if (!($uri->scheme eq 'http' or $uri->scheme eq 'https')) {
+        return ERROR('URI scheme is neither \'http\' nor \'https\'');
+    }
+
+    $uri->path('/api/');
+
+    $object{uri} = $uri;
+    $object{user_agent} = LWP::UserAgent->new(ssl_opts => $ssl_opts);
+    $object{api_key} = '';
+    $object{active_vsys_id} = 1;
+
+    return bless \%object, $class;
+}
+
+
+
 =head2 auth
 
     my $fw = $fw->auth;
@@ -72,15 +151,56 @@ This function authenticates the credentials passed to new against the firewall.
 
 If successful, it returns the object itself to all method calls to be chains. If unsuccessful, it returns a L<Class::Error> object.
 
-=head2 vsys
+=cut
 
-Sets the virtual system (vsys) ID to which calls will be applied. By default vsys 1 is used.
+sub auth {
+    my $self = shift;
+
+    my $response = $self->_send_request(
+        type => 'keygen',
+        user => $self->{username},
+        password => $self->{password}
+    );
+
+    # Return the Class::Error
+    return $response unless $response;
+
+    $self->{api_key} = $response->{result}{key};
+
+    return $self;
+}
+
+=head2 debug
+
+    $fw->debug->op->interfaces();
+
+Enables the debugging of HTTP requests and responses to the firewall.
 
 =cut
 
-sub vsys {
+sub debug {
     my $self = shift;
-    ($self->{vsys_id}) = @_;
+
+    return $self if $self->{wrap};
+
+    $self->{wrap} = wrap 'Device::Firewall::PaloAlto::API::_send_raw_request',
+        pre => \&Device::Firewall::PaloAlto::API::_debug_pre_wrap,
+        post => \&Device::Firewall::PaloAlto::API::_debug_post_wrap;
+
+    return $self;
+}
+
+=head2 undebug 
+
+Disables debugging.
+
+=cut
+
+sub undebug {
+    my $self = shift;
+    $self->{wrap} = undef;
+
+    return $self;
 }
 
 
@@ -124,6 +244,21 @@ Refer to the module documentation for more information.
 sub user_id {  
     my $self = shift;
     return Device::Firewall::PaloAlto::UserID->_new($self);
+}
+
+=head2 test
+
+Provides access to the L<Device::Firewall::PaloAlto::Test> module. This module allows you to test the current state of a firewall.
+
+    use Test::More;
+    $test = $fw->test;
+    ok( $test->interfaces('ethernet1/1', 'ethernet1/2'), 'Interfaces up' );
+
+=cut
+
+sub test {
+    my $self = shift;
+    return Device::Firewall::PaloAlto::Test->new($self);
 }
 
 =head2 Errors

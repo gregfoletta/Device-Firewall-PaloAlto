@@ -10,7 +10,6 @@ use LWP::UserAgent;
 use HTTP::Request::Common;
 use XML::Twig;
 use Class::Error;
-use Hook::LexWrap;
 
 use Device::Firewall::PaloAlto::Errors qw(ERROR);
 
@@ -26,97 +25,6 @@ This module contains API related methods used by the L<Device::Firewall::PaloAlt
 
 =cut 
 
-sub new {
-    my $class = shift;
-    my %args = @_;
-
-    my %object;
-    my @args_keys = qw(uri username password);
-
-    @object{ @args_keys } = @args{ @args_keys };
-
-    $object{uri} //= $ENV{PA_FW_URI} or return ERROR('No uri specified and no environment variable PA_FW_URI found');
-    $object{username} //= $ENV{PA_FW_USERNAME} // 'admin';
-    $object{password} //= $ENV{PA_FW_PASSWORD} // 'admin';
-    carp "Not enough keys specified" and return unless keys %object >= 3;
-
-    $args{verify_hostname} //= 1;
-    my $ssl_opts = { verify_hostname => $args{verify_hostname} };
-
-
-    my $uri = URI->new($object{uri});
-    if (!($uri->scheme eq 'http' or $uri->scheme eq 'https')) {
-        carp "Incorrect URI scheme in uri '$object{uri}': must be either http or https";
-        return
-    }
-
-    $uri->path('/api/');
-
-    $object{uri} = $uri;
-    $object{user_agent} = LWP::UserAgent->new(ssl_opts => $ssl_opts);
-    $object{api_key} = '';
-    $object{vsys_id} = 1;
-
-    return bless \%object, $class;
-}
-
-
-
-=head2 auth
-
-Authenticates the supplies credentials against the firewall. If successfull it returns the object to allow for method chaining.
-If not successful it returns a L<Class::Error> object.
-
-=cut
-
-sub auth {
-    my $self = shift;
-
-    my $response = $self->_send_request(
-        type => 'keygen',
-        user => $self->{username},
-        password => $self->{password}
-    );
-
-    # Return the Class::Error
-    return $response unless $response;
-
-    $self->{api_key} = $response->{result}{key};
-
-    return $self;
-}
-
-=head2 debug
-
-    $fw->debug->op->interfaces();
-
-Enables the debugging of HTTP requests and responses to the firewall.
-
-=cut
-sub debug {
-    my $self = shift;
-
-    return $self if $self->{wrap};
-
-    $self->{wrap} = wrap '_send_raw_request',
-        pre => \&_debug_pre_wrap,
-        post => \&_debug_post_wrap;
-
-    return $self;
-}
-
-=head2 undebug 
-
-Disables debugging.
-
-=cut
-
-sub undebug {
-    my $self = shift;
-    $self->{wrap} = undef;
-
-    return $self;
-}
 
 
 # Sends a request to the firewall. The query string parameters come from the key/value 
@@ -168,6 +76,7 @@ sub _check_http_response {
     return $http_response->decoded_content;
 }
 
+
 # Parses the API response and checks if it's an API error.
 # Returns a data structure representing the XML content on success.
 # On failure returns 'false'.
@@ -181,11 +90,37 @@ sub _check_api_response {
     $api_response = $api_response->simplify( forcearray => ['entry'] );
 
     if ($api_response->{status} eq 'error') {
-        my $err = "API Error: $api_response->{msg}{line} (Code: $api_response->{code})";
+        my $error_string = _clean_error_message($api_response);
+        my $err = "API Error: $error_string  (Code: $api_response->{code})";
         return ERROR($err);
     }
 
     return $api_response;
+}
+
+# The error messages that come back from the firewall are in some very strange and different structures.
+# This functiona attempts to clean them up
+sub _clean_error_message {
+    my ($response) = @_;
+    my $ret_string;
+
+    if (!defined $response->{msg}{line}) {
+        return 'No error message defined';
+    }
+
+    my $error_structure = ref $response->{msg}{line};
+
+
+    if (!$error_structure) {
+        return $response->{msg}{line};
+    } elsif ($error_structure eq 'ARRAY') {
+        say 'ere';
+        return join(', ', @{$response->{msg}{line}});
+    } else {
+        return '';
+    }
+
+    return $response->{msg}{line};
 }
 
 

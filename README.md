@@ -39,6 +39,26 @@ This module provides an interface to the Palo Alto firewall API.
 
 # METHODS
 
+## fw()
+
+This sub (not a class method) is exported automatically into the main:: namespace if the module is
+called from a one-liner - i.e. the calling script name is '-e'.
+
+This shortens the amount of code needed in one liners. As an example
+
+    # Long way
+    % perl -MDevice::Firewall::PaloAlto -E 'Device::Firewall::PaloAlto::new(vefify_hostname => 0)->auth->op->system_info->to_json'
+    
+    # Shorter way
+    % perl -MDevice::Firewall::PaloAlto -E 'fw()->op->system_info->to_json'
+
+The sub takes `($user, $pass, $verify)` arguments. If `$user` and `$pass` arguments are not specified,
+their undefinedness is passed through to `new()` and either environment variables are used or they default
+to 'admin'. 
+
+If `$verify` is not specified, `new()` is called with `verify_hostname =` 0>, and thus the TLS certificate is
+not verified. This is opposite to the default behaviour of `new()` where the verification is performed.
+
 ## new
 
     my $fw = Device::Firewall::PaloAlto(
@@ -60,9 +80,15 @@ This function authenticates the credentials passed to new against the firewall.
 
 If successful, it returns the object itself to all method calls to be chains. If unsuccessful, it returns a [Class::Error](https://metacpan.org/pod/Class::Error) object.
 
-## vsys
+## debug
 
-Sets the virtual system (vsys) ID to which calls will be applied. By default vsys 1 is used.
+    $fw->debug->op->interfaces();
+
+Enables the debugging of HTTP requests and responses to the firewall.
+
+## undebug 
+
+Disables debugging.
 
 ## op
 
@@ -90,6 +116,14 @@ Provides access to the [Device::Firewall::PaloAlto::UserID](https://metacpan.org
     $fw->user_id->rm_ip_mapping('192.0.2.1', 'localdomain\greg.foletta');
 
 Refer to the module documentation for more information.
+
+## test
+
+Provides access to the [Device::Firewall::PaloAlto::Test](https://metacpan.org/pod/Device::Firewall::PaloAlto::Test) module. This module allows you to test the current state of a firewall.
+
+    use Test::More;
+    $test = $fw->test;
+    ok( $test->interfaces('ethernet1/1', 'ethernet1/2'), 'Interfaces up' );
 
 ## Errors
 
