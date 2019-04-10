@@ -46,6 +46,27 @@ sub new {
     return bless { fw => $fw }, $class;
 }
 
+=head2 vsys
+
+Sets the virtual system (vsys) ID to which calls will be applied. By default vsys 1 is used.
+
+=cut
+
+sub vsys {
+    my $self = shift;
+    my ($vsys_id) = @_;
+
+    my $vsys_string = "vsys$vsys_id";
+    my $r = $self->_send_op_cmd('set system setting target-vsys', $vsys_string);
+
+    if ($r) {
+        $self->{fw}{active_vsys_id} = $vsys_id;
+        return $r;
+    } else {
+        return $r;
+    }
+}
+
 =head2 system_info
 
     my $info = $fw->op->system_info;

@@ -72,17 +72,6 @@ This function authenticates the credentials passed to new against the firewall.
 
 If successful, it returns the object itself to all method calls to be chains. If unsuccessful, it returns a L<Class::Error> object.
 
-=head2 vsys
-
-Sets the virtual system (vsys) ID to which calls will be applied. By default vsys 1 is used.
-
-=cut
-
-sub vsys {
-    my $self = shift;
-    ($self->{vsys_id}) = @_;
-}
-
 
 =head2 op
 

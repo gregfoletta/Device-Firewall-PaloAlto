@@ -55,7 +55,7 @@ sub new {
     $object{uri} = $uri;
     $object{user_agent} = LWP::UserAgent->new(ssl_opts => $ssl_opts);
     $object{api_key} = '';
-    $object{vsys_id} = 1;
+    $object{active_vsys_id} = 1;
 
     return bless \%object, $class;
 }
