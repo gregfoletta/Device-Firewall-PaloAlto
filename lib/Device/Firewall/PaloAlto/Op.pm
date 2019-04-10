@@ -115,6 +115,9 @@ sub virtual_router {
 
 Returns a L<Device::Firewall::PaloAlto::Op::Tunnels> object representing the current active IPSEC tunnels.
 
+    my $tunnels = $fw->op->tunnels
+    my $client_site = $tunnels->gw('remote_site_gw');
+
 =cut
 
 sub tunnels {
@@ -129,6 +132,10 @@ sub tunnels {
 =head2 global_counters
 
 Returns a L<Device::Firewall::PaloAlto::Op::GlobalCounters> object representing the global counters.
+
+    # Extract out the drop alerts alerts
+    my $counters = $fw->op->global_counters;
+    my @drop_counter = grep { $_->severity eq 'drop' } $counters->to_array;
 
 =cut
 
@@ -149,7 +156,10 @@ sub global_counters {
 
 =head2 ip_user_mapping
 
-Returns IP to user mappings
+Returns a L<Device::Firewall::PaloAlto::Op::IPUserMaps> objects representing the current active IP to user mappings on the device.
+
+    my $maps = $fw->op->ip_user_mapping;
+    my @mappings = grep { $_->user eq 'greg.foleta' } $map->to_array;
 
 =cut
 
@@ -164,7 +174,6 @@ sub ip_user_mapping {
 sub _send_op_cmd {
     my $self = shift;
     my ($cmd, $var) = @_;
-
 
     return $self->{fw}->_send_request(type => 'op', cmd => _gen_op_xml($cmd, $var));
 }
