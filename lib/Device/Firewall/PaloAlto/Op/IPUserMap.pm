@@ -13,10 +13,13 @@ use parent qw(Device::Firewall::PaloAlto::JSON);
 =encoding utf8
 
 =head1 SYNOPSIS
+    
+    my $mappings = $fw->op->ip_user_mapping;
+    say $_->name foreach $mappings->to_array; 
 
 =head1 DESCRIPTION
 
-=head1 ERRORS 
+This object represents a single IP to user mapping.
 
 =head1 METHODS
 

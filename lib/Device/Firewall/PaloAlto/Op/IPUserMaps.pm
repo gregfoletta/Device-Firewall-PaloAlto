@@ -7,7 +7,6 @@ use 5.010;
 use parent qw(Device::Firewall::PaloAlto::JSON);
 
 use Device::Firewall::PaloAlto::Op::IPUserMap;
-
 use Device::Firewall::PaloAlto::Errors qw(ERROR);
 
 
@@ -19,9 +18,13 @@ use Device::Firewall::PaloAlto::Errors qw(ERROR);
 
 =head1 SYNOPSIS
 
+    my $mappings = $fw->op->ip_user_mapping;
+    my $mapping = $mappings->ip('192.0.2.1');
+    say "User: ". $mapping->user;
+    
 =head1 DESCRIPTION
 
-=head1 ERRORS 
+This object represents the entries in the IP to user mapping table. It contains a number of L<Device::Firewall::PaloAlto::Op::IPUserMap> objects.
 
 =head1 METHODS
 
@@ -65,6 +68,7 @@ Returns an array of L<Device::Firewall::PaloAlto::Op::IPUserMap> objects represe
 =cut
 
 sub to_array { return values %{$_[0]} }
+
 
 1;
 

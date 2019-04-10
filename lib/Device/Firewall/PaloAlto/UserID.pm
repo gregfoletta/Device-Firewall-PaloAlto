@@ -6,7 +6,7 @@ use 5.010;
 
 # VERSION
 # PODNAME
-# ABSTRACT: Palo Alto User-ID Operations
+# ABSTRACT: Palo Alto User-ID dynamic mapping operations.
 
 use Device::Firewall::PaloAlto::Errors qw(ERROR);
 
@@ -14,9 +14,15 @@ use Device::Firewall::PaloAlto::Errors qw(ERROR);
 
 =head1 SYNOPSIS
 
+    # Add an IP to user address mapping
+    $ fw->user_id->add_ip_mapping('192.0.2.1', 'localdomain\greg.foletta');
+
+    # Remove anb IP o user address mapping
+    $ fw->user_id->rm_ip_mapping('192.0.2.1', 'localdomain\greg.foletta');
+
 =head1 DESCRIPTION
 
-=head1 ERRORS 
+This module allows for the addition and removal of dynamic IP to user address mappings.
 
 =head1 METHODS
 
