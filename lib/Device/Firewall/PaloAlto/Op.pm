@@ -50,6 +50,8 @@ sub new {
 
 Sets the virtual system (vsys) ID to which calls will be applied. By default vsys 1 is used.
 
+On success reutrns the Device::Firewall::PaloAlto::Op object so calls can be chained together. On failure it returns a L<Class::Error> object.
+
 =cut
 
 sub vsys {
@@ -61,7 +63,7 @@ sub vsys {
 
     if ($r) {
         $self->{fw}{active_vsys_id} = $vsys_id;
-        return $r;
+        return $self;
     } else {
         return $r;
     }
