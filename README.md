@@ -60,10 +60,6 @@ This function authenticates the credentials passed to new against the firewall.
 
 If successful, it returns the object itself to all method calls to be chains. If unsuccessful, it returns a [Class::Error](https://metacpan.org/pod/Class::Error) object.
 
-## vsys
-
-Sets the virtual system (vsys) ID to which calls will be applied. By default vsys 1 is used.
-
 ## op
 
 Returns a [Device::Firewall::PaloAlto::Op](https://metacpan.org/pod/Device::Firewall::PaloAlto::Op) object. This object has methods to perform operational tasks on the firewall.
@@ -90,6 +86,14 @@ Provides access to the [Device::Firewall::PaloAlto::UserID](https://metacpan.org
     $fw->user_id->rm_ip_mapping('192.0.2.1', 'localdomain\greg.foletta');
 
 Refer to the module documentation for more information.
+
+## test
+
+Provides access to the [Device::Firewall::PaloAlto::Test](https://metacpan.org/pod/Device::Firewall::PaloAlto::Test) module. This module allows you to test the current state of a firewall.
+
+    use Test::More;
+    $test = $fw->test;
+    ok( $test->interfaces('ethernet1/1', 'ethernet1/2'), 'Interfaces up' );
 
 ## Errors
 

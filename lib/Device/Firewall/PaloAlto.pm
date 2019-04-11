@@ -8,6 +8,7 @@ use parent 'Device::Firewall::PaloAlto::API';
 
 use Device::Firewall::PaloAlto::Op;
 use Device::Firewall::PaloAlto::UserID;
+use Device::Firewall::PaloAlto::Test;
 
 # VERSION
 # PODNAME
@@ -113,6 +114,21 @@ Refer to the module documentation for more information.
 sub user_id {  
     my $self = shift;
     return Device::Firewall::PaloAlto::UserID->_new($self);
+}
+
+=head2 test
+
+Provides access to the L<Device::Firewall::PaloAlto::Test> module. This module allows you to test the current state of a firewall.
+
+    use Test::More;
+    $test = $fw->test;
+    ok( $test->interfaces('ethernet1/1', 'ethernet1/2'), 'Interfaces up' );
+
+=cut
+
+sub test {
+    my $self = shift;
+    return Device::Firewall::PaloAlto::Test->new($self);
 }
 
 =head2 Errors
