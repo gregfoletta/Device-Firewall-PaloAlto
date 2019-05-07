@@ -12,6 +12,8 @@ use Device::Firewall::PaloAlto::Op::VirtualRouter;
 use Device::Firewall::PaloAlto::Op::Tunnels;
 use Device::Firewall::PaloAlto::Op::GlobalCounters;
 use Device::Firewall::PaloAlto::Op::IPUserMaps;
+use Device::Firewall::PaloAlto::Op::HA;
+use Device::Firewall::PaloAlto::Op::NTP;
 
 use XML::LibXML;
 
@@ -191,6 +193,34 @@ sub ip_user_mapping {
 
     return Device::Firewall::PaloAlto::Op::IPUserMaps->_new( $self->_send_op_cmd('show user ip-user-mapping all') );
 }
+
+=head2 ha
+
+Returns a L<Device::Firewall::PaloAlto::Op::HA> object representing the current high availability state of the firewall.
+
+    my $ha_info = $fw->op->ha;
+
+=cut
+
+sub ha {
+    my $self = shift;
+
+    return Device::Firewall::PaloAlto::Op::HA->_new( $self->_send_op_cmd('show high-availability state') );
+}
+
+=head2 ntp
+
+Returns a L<Device::Firewall::PaloAlto::Op::NTP> object reresenting the current NTP synchronisation status of the firewall.
+
+=cut
+
+sub ntp {
+    my $self = shift;
+
+    return Device::Firewall::PaloAlto::Op::NTP->_new( $self->_send_op_cmd('show ntp') );
+}
+
+
 
 
 
