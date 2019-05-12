@@ -7,7 +7,6 @@ use Device::Firewall::PaloAlto::API;
 use Device::Firewall::PaloAlto::Op::ARPTable;
 
 use lib 't/lib';
-use Cwd;
 use Local::TestSupport qw(pseudo_api_call);
 
 my ($fh, $xml);
