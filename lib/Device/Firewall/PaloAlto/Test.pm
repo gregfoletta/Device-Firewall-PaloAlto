@@ -1,5 +1,6 @@
 package Device::Firewall::PaloAlto::Test;
 
+use Device::Firewall::PaloAlto::Test::Rulebase;
 
 use strict;
 use warnings;
@@ -16,6 +17,15 @@ use 5.010;
     use Test::More;
     my $test = Device::Firewall::PaloAlto->new(username => 'admin', password => 'admin')->auth->test;
     ok( $test->interfaces(['ethernet1/1', 'ethernet1/2']), 'Interfaces are up' );
+
+    # Test whether a flow would pass through the firewall
+    my $result = $fw->test->rulebase(
+        from => 'Trust',
+        to => 'Untrust',
+        source => '192.0.2.1',
+        to => '203.0.113.0',
+        destination-p
+
 
 =head1 DESCRIPTION
 
@@ -91,6 +101,81 @@ sub arp {
 
     return 1;
 }
+
+
+=head2 rulebase
+
+This function takes arguments related to a traffic flow through the firewall and determines the action the security rulebase would have taken on the flow.
+
+It returns a L<Device::Firewall::PaloAlto::Test::Rulebase> object.
+
+    my $result = $fw->test->rulebase(
+        from => 'Trust',
+        to => 'Untrust',
+        src => '192.0.2.1',
+        dst => '203.0.113.1',
+        protocol => 6,
+        port => 443,
+        app => 'any',
+        category => 'any',
+        user => 'test\test_user'
+    );
+
+=cut
+
+sub rulebase {
+    my $self = shift;
+    my (%args) = @_;
+    my %tags;
+
+    # Some of the tags are long, so we translate between the argument to the sub ('arg') and the eventual
+    # XML tag ('tag'). We also determine the default value.
+    my @tag_translation = (
+        { tag => 'from', default => 'any' },
+        { tag => 'to', default => 'any' },
+        { arg => 'src', tag => 'source', default => '' },
+        { arg => 'dst', tag => 'destination', default => '' },
+        { tag => 'protocol', default => 6 },
+        { arg => 'port', tag => 'destination-port', default => 80 },
+        { arg => 'app', tag => 'application', default => 'any' },
+        { tag => 'category', default => 'any' },
+        { arg => 'user', tag => 'source-user', default => 'any' },
+    );
+
+    for my $xlate (@tag_translation) {
+        # The arg to the sub is either a custom value or 
+        # it's the actual tag.
+        my $arg = $xlate->{arg} // $xlate->{tag};
+
+        # Set a default value if not supplied to the sub.
+        $tags{ $xlate->{tag} } = $args{$arg} // $xlate->{default};
+    }
+
+    return Device::Firewall::PaloAlto::Test::Rulebase->_new(
+        $self->{fw}->_send_request(type => 'op', cmd => _gen_rulebase_test_xml(%tags))
+    );
+}
+
+
+sub _gen_rulebase_test_xml {
+    my (%tags) = @_;
+
+    my $xml_doc = XML::LibXML::Document->new(); 
+    my $policy_tag = $xml_doc->createElement('security-policy-match');
+
+    for my $tag (keys %tags) {
+        my $text = $xml_doc->createTextNode($tags{$tag});
+        my $node = $xml_doc->createElement($tag);
+        $node->appendChild($text);
+        $policy_tag->appendChild($node);
+    }
+
+    my $root = $xml_doc->createElement('test');
+    $root->appendChild($policy_tag);
+
+    return $root->toString;
+}
+    
 
 
 
