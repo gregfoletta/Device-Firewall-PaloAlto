@@ -203,7 +203,6 @@ sub undebug {
     return $self;
 }
 
-
 =head2 op
 
 Returns a L<Device::Firewall::PaloAlto::Op> object. This object has methods to perform operational tasks on the firewall.

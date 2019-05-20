@@ -78,7 +78,6 @@ The index of the policy that the flow matched against.
 
 sub index { return $_[0]->{index} + 0 }
 
-
 sub bool_overload { $_[0]->{action} eq 'allow' };
 
 

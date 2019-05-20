@@ -25,8 +25,6 @@ This module contains API related methods used by the L<Device::Firewall::PaloAlt
 
 =cut 
 
-
-
 # Sends a request to the firewall. The query string parameters come from the key/value 
 # parameters passed to the function, ie _send_request(type = 'op', cmd => '<xml>')
 #

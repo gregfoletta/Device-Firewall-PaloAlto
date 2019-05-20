@@ -33,7 +33,11 @@ sub _new {
     my $class = shift;
     my ($api_response) = @_;
 
-    return bless $api_response, $class;
+    return $api_response unless $api_response;
+
+    my %result = %{ $api_response->{result} };
+
+    return bless \%result, $class;
 }
 
 
