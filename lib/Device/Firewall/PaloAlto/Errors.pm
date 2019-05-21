@@ -31,11 +31,21 @@ sub ERROR {
     my ($errstring, $errno) = @_;
 
     $errno //= 0;
-    
+
     # Are we in a one liner? If so, we croak out straight away
-    croak $errstring if (caller())[1] eq '-e';
+    croak $errstring if in_one_liner();
 
     return Class::Error->new($errstring, $errno);
+}
+
+
+sub in_one_liner {
+    my $level = 0;
+    my $filename;
+    my @call_info;
+
+    while (@call_info = caller($level++)) { $filename = $call_info[1] };
+    return $filename eq '-e' ? 1 : 0;
 }
 
 1;
