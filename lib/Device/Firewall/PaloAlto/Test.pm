@@ -1,6 +1,6 @@
 package Device::Firewall::PaloAlto::Test;
 
-use Device::Firewall::PaloAlto::Test::Rulebase;
+use Device::Firewall::PaloAlto::Test::SecPolicy;
 use Device::Firewall::PaloAlto::Test::NATPolicy;
 
 use strict;
@@ -104,13 +104,13 @@ sub arp {
 }
 
 
-=head2 rulebase
+=head2 secpolicy
 
 This function takes arguments related to a traffic flow through the firewall and determines the action the security rulebase would have taken on the flow.
 
-It returns a L<Device::Firewall::PaloAlto::Test::Rulebase> object.
+It returns a L<Device::Firewall::PaloAlto::Test::SecPolicy> object.
 
-    my $result = $fw->test->rulebase(
+    my $result = $fw->test->secpolicy {
         from => 'Trust',
         to => 'Untrust',
         src => '192.0.2.1',
@@ -124,7 +124,7 @@ It returns a L<Device::Firewall::PaloAlto::Test::Rulebase> object.
 
 =cut
 
-sub rulebase {
+sub secpolicy {
     my $self = shift;
     my (%args) = @_;
     my %tags;
