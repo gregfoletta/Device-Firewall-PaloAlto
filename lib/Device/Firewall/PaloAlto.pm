@@ -23,7 +23,7 @@ use Device::Firewall::PaloAlto::Test;
 
 # VERSION
 # PODNAME
-# ABSTRACT: Interact with the Palo Alto firwall API
+# ABSTRACT: Interact with the Palo Alto firewall API
 
 =encoding utf8
 
@@ -48,9 +48,26 @@ use Device::Firewall::PaloAlto::Test;
         ->route('0.0.0.0/0)
         ->protocol
 
-    # Collection objects (interfaces, virtual router, etc) can be 
-    # directly converted to an array of objects.
-    say $_->name foreach $fw->op->interfaces->to_array;
+    # Can use the 'Test' module to test aspects of the firewall.
+    # Returns true if both IPs are in the ARP table
+    ok( $fw->test->arp( qw(192.0.2.1 192.0.2.2) );
+    
+    my $flow = $fw->test->secpolicy(
+       from => 'Trust', to => 'Untrust',
+       src => '192.0.2.1', dst => '203.0.113.1',
+       protocol => 6, port => 443
+    );
+
+    ok( $flow, 'Flow was allowed' );
+    say "Flow hit rule: ".$flow->rulename;
+
+    # Add and remove user ID information on the firewall
+    $fw->user_id->add_ip_mapping('192.0.2.1', 'localdomain\greg.foletta');
+
+    # If the module is used in a one liner, fw() sub is exported to make
+    # it easier to use, and to_json() automatically prints to STDOUT.
+    bash% perl -MDevice::Firewall::PaloAlto -E 'fw()->op->arp_table->to_json'
+
 
 =head1 DESCRIPTION
 
@@ -91,7 +108,7 @@ sub fw {
         username => $user,
         password => $pass,
         verify_hostname => $verify
-    );
+    )->auth;
 }
 
 =head2 new
@@ -276,7 +293,7 @@ This allows you to chain together method calls and the error is propagated all t
 
 If the code is being run from a one-liner, the error is immeidately croaked rather than being returned as a L<Class::Error> object. This saves the user from having to add the explicit croak at the end of the call on what it likely an already crowded shell line. An example:
 
-    bash# perl -MDevice::Firewall::PaloAlto -E 'Device::Firewall::PaloAlto->new->auth->op->system_info->to_json'         
+    bash% perl -MDevice::Firewall::PaloAlto -E 'fw()->op->system_info->to_json'         
     HTTP Error: 500 Can't connect to pa.localdomain:443 (certificate verify failed) - 500 at -e line 1.
 
 =head2 Environment Variables
@@ -288,11 +305,11 @@ The purpose of these is to reduce the clutter when using the module in a one-lin
     bash# export PA_FW_URI=https://pa.localdomain
     bash# export PA_FW_USERNAME=greg.foletta
     bash# export PA_FW_PASSWORD=a_complex_password
-    bash# perl -IDevice::Firewall::PaloAlto -E 'say Device::Firewall::PaloAlto->new->auth->op->interfaces->to_json'
+    bash# perl -MDevice::Firewall::PaloAlto -E 'say fw()->op->interfaces->to_json'
 
 =head2 JSON
 
-Almost all of the objects have a C<to_json> method which returns a JSON representation of the object. There are two ways to use this method:
+Most of the objects have a C<to_json> method which returns a JSON representation of the object. There are two ways to use this method:
 
     # Outputs the json to STDOUT
     $fw->op->system_info->to_json;

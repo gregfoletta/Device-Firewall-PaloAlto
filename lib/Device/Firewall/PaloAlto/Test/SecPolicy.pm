@@ -1,4 +1,4 @@
-package Device::Firewall::PaloAlto::Test::Rulebase;
+package Device::Firewall::PaloAlto::Test::SecPolicy;
 
 use strict;
 use warnings;
@@ -17,7 +17,7 @@ use overload 'bool' => 'bool_overload';
 =head1 SYNOPSIS
 
     use Test::More;
-    my $result = $fw->test->rulebase( ... );
+    my $result = $fw->test->secpolicy( ... );
 
     # Object returns true or false in boolean context depending on whether the
     # flow was allowed / denied through the firewall.
