@@ -153,16 +153,11 @@ sub rulebase {
     }
 
     return Device::Firewall::PaloAlto::Test::Rulebase->_new(
-<<<<<<< HEAD
         $self->{fw}->_send_request(type => 'op', cmd => _gen_test_xml('security-policy-match', %tags))
-=======
-        $self->{fw}->_send_request(type => 'op', cmd => _gen_rulebase_test_xml(%tags))
->>>>>>> c067cf76146a870610312262b862c3576524a9f9
     );
 }
 
 
-<<<<<<< HEAD
 =head2 nat_policy
 
 This function takes arguments related to a traffic flow through the firewall and determines the action the NAT rulebase would have taken on the flow.
@@ -223,8 +218,6 @@ sub nat_policy {
 
 
 
-=======
->>>>>>> c067cf76146a870610312262b862c3576524a9f9
 sub _gen_rulebase_test_xml {
     my (%tags) = @_;
 
@@ -243,7 +236,6 @@ sub _gen_rulebase_test_xml {
 
     return $root->toString;
 }
-<<<<<<< HEAD
 
 # Generates the XML for an operational test. The first argument should be the
 # tag that determines the type of test, the second is a hashref with the tags and
@@ -269,11 +261,6 @@ sub _gen_test_xml {
 
     return $root->toString;
 }
-
-
-=======
-    
->>>>>>> c067cf76146a870610312262b862c3576524a9f9
 
 
 
