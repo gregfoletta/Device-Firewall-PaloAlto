@@ -11,19 +11,19 @@ isa_ok($test_obj, 'Device::Firewall::PaloAlto::Test');
 
 my @rulebase_tests = (
     {
-        args => { from => 'TRUST', to => 'UNTRUST', src => q(1.1.1.1), dst => q(2.2.2.2), port => 443 },
+        args => { from => 'TRUST', to => 'UNTRUST', src_ip => q(1.1.1.1), dst_ip => q(2.2.2.2), dst_port => 443 },
         allow => 0,
         rulename => 'Deny Policy',
         index => qr(\d+),
     },
     {
-        args => { from => 'TUNNEL', to => 'TUNNEL', src => q(1.1.1.1), dst => q(2.2.2.2) },
+        args => { from => 'TUNNEL', to => 'TUNNEL', src_ip => q(1.1.1.1), dst_ip => q(2.2.2.2) },
         allow => 1,
         rulename => 'Tunnel Policy',
         index => qr(\d+),
     },
     {
-        args => { from => 'TRUST', to => 'UNTRUST', src => q(1.1.1.1), dst => q(2.2.2.2), port => 22 },
+        args => { from => 'TRUST', to => 'UNTRUST', src_ip => q(1.1.1.1), dst_ip => q(2.2.2.2), dst_port => 22 },
         allow => 0,
         rulename => '__DEFAULT_DENY__',
         index => qr(\d+),
@@ -31,8 +31,8 @@ my @rulebase_tests = (
 );
 
 for my $test (@rulebase_tests) {
-    my $a = $test_obj->rulebase( %{ $test->{args} } );
-    isa_ok( $a, 'Device::Firewall::PaloAlto::Test::Rulebase' );
+    my $a = $test_obj->sec_policy( %{ $test->{args} } );
+    isa_ok( $a, 'Device::Firewall::PaloAlto::Test::SecPolicy' );
 
     is( $a->rulename, $test->{rulename}, 'Rulename matches' );
     like( $a->index, $test->{index}, 'Index matches' );

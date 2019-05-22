@@ -104,19 +104,19 @@ sub arp {
 }
 
 
-=head2 secpolicy
+=head2 sec_policy
 
 This function takes arguments related to a traffic flow through the firewall and determines the action the security rulebase would have taken on the flow.
 
 It returns a L<Device::Firewall::PaloAlto::Test::SecPolicy> object.
 
-    my $result = $fw->test->secpolicy {
+    my $result = $fw->test->sec_policy {
         from => 'Trust',
         to => 'Untrust',
         src_ip => '192.0.2.1',
         dst_ip => '203.0.113.1',
         protocol => 6,
-        port => 443,
+        dst_port => 443,
         app => 'any',
         category => 'any',
         user => 'test\test_user'
@@ -124,7 +124,7 @@ It returns a L<Device::Firewall::PaloAlto::Test::SecPolicy> object.
 
 =cut
 
-sub secpolicy {
+sub sec_policy {
     my $self = shift;
     my (%args) = @_;
     my %tags;
@@ -152,7 +152,7 @@ sub secpolicy {
         $tags{ $xlate->{tag} } = $args{$arg} // $xlate->{default};
     }
 
-    return Device::Firewall::PaloAlto::Test::Rulebase->_new(
+    return Device::Firewall::PaloAlto::Test::SecPolicy->_new(
         $self->{fw}->_send_request(type => 'op', cmd => _gen_test_xml('security-policy-match', %tags))
     );
 }
@@ -215,7 +215,6 @@ sub nat_policy {
         $self->{fw}->_send_request(type => 'op', cmd => _gen_test_xml('nat-policy-match', %tags))
     );
 }
-
 
 
 sub _gen_rulebase_test_xml {
