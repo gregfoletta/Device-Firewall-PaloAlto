@@ -51,16 +51,16 @@ version 0.1.9
 
 This module provides an interface to the Palo Alto firewall API.
 
-# DETAILS
-
-# METHODS
+# FUNCTIONS 
 
 ## fw()
 
-This sub (not a class method) is exported automatically into the main:: namespace if the module is
-called from a one-liner - i.e. the calling script name is '-e'.
+This is exported automatically into the main:: namespace if the module is
+loaded within a one-liner - i.e. the calling script name is '-e'. If the module is
+loaded within a normal script, this sub is not exported into main (though is of course accessible
+using `Device::Firewall::PaloAlto::fw()`.)
 
-This shortens the amount of code needed in one liners. As an example
+The purpose of this sub is to reduce the amount of code needed in one liners. As an example
 
     # Long way
     % perl -MDevice::Firewall::PaloAlto -E 'Device::Firewall::PaloAlto::new(vefify_hostname => 0)->auth->op->system_info->to_json'
@@ -74,6 +74,8 @@ to 'admin'.
 
 If `$verify` is not specified, `new()` is called with `verify_hostname =` 0>, and thus the TLS certificate is
 not verified. This is opposite to the default behaviour of `new()` where the verification is performed.
+
+# METHODS
 
 ## new
 
@@ -141,11 +143,11 @@ Provides access to the [Device::Firewall::PaloAlto::Test](https://metacpan.org/p
     $test = $fw->test;
     ok( $test->interfaces('ethernet1/1', 'ethernet1/2'), 'Interfaces up' );
 
-## Errors
+# ERRORS
 
 Errors are handled differently depending on whether the script is running from a file, or from a 'one-liner'.
 
-### File Errors
+## File Errors
 
 In the event of an error, a [Class::Error](https://metacpan.org/pod/Class::Error) object is returned. The module's documentation provides the best information, but essentially it slurps up any method calls, evaluates to false in a boolean context, and contains an error string and code.
 
@@ -153,27 +155,28 @@ This allows you to chain together method calls and the error is propagated all t
 
     my $state = $fw->auth->op->interfaces->interface('ethernet1/1')->state or die $state->error();
 
-### One-liner Errors
+## One-liner Errors
 
 If the code is being run from a one-liner, the error is immeidately croaked rather than being returned as a [Class::Error](https://metacpan.org/pod/Class::Error) object. This saves the user from having to add the explicit croak at the end of the call on what it likely an already crowded shell line. An example:
 
     bash% perl -MDevice::Firewall::PaloAlto -E 'fw()->op->system_info->to_json'         
     HTTP Error: 500 Can't connect to pa.localdomain:443 (certificate verify failed) - 500 at -e line 1.
 
-## Environment Variables
+# ENVIRONMENT VARIABLES
 
 The module uses the environment variables `PA_FW_URI`, `PA_FW_USERNAME` and `PA_FW_PASSWORD`. These map to the `uri`, `username` and `password` arguments to the new constructor. If any of these arguments are not present, the environment variable (if defined) is used.
 
 The purpose of these is to reduce the clutter when using the module in a one-liner:
 
-    bash# export PA_FW_URI=https://pa.localdomain
-    bash# export PA_FW_USERNAME=greg.foletta
-    bash# export PA_FW_PASSWORD=a_complex_password
-    bash# perl -MDevice::Firewall::PaloAlto -E 'say fw()->op->interfaces->to_json'
+    bash% export PA_FW_URI=https://pa.localdomain
+    bash% export PA_FW_USERNAME=greg.foletta
+    bash% export PA_FW_PASSWORD=a_complex_password
+    bash% perl -MDevice::Firewall::PaloAlto -E 'say fw()->op->interfaces->to_json'
 
-## JSON
+# JSON
 
-Most of the objects have a `to_json` method which returns a JSON representation of the object. There are two ways to use this method:
+Most objects inherit the `to_json` method which returns a JSON representation of the object. By default the JSON is printed to STDOUT, however
+a filename can be pased instead.
 
     # Outputs the json to STDOUT
     $fw->op->system_info->to_json;
