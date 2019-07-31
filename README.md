@@ -33,7 +33,7 @@ version 0.1.9
     
     my $flow = $fw->test->secpolicy(
        from => 'Trust', to => 'Untrust',
-       src => '192.0.2.1', dst => '203.0.113.1',
+       src_ip => '192.0.2.1', dst_ip => '203.0.113.1',
        protocol => 6, port => 443
     );
 

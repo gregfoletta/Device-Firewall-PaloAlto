@@ -151,8 +151,11 @@ sub new {
 
     $uri->path('/api/');
 
+    my $ua = LWP::UserAgent->new(ssl_opts => $ssl_opts);
+    $ua->env_proxy();
+
     $object{uri} = $uri;
-    $object{user_agent} = LWP::UserAgent->new(ssl_opts => $ssl_opts);
+    $object{user_agent} = $ua;
     $object{api_key} = '';
     $object{active_vsys_id} = 1;
 

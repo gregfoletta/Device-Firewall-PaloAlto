@@ -5,6 +5,7 @@ use warnings;
 use 5.010;
 
 use Device::Firewall::PaloAlto::Op::Interface;
+use Device::Firewall::PaloAlto::Errors qw(fatal_error);
 
 use parent qw(Device::Firewall::PaloAlto::JSON);
 
@@ -79,7 +80,7 @@ Returns a L<Device::Firewall::PaloAlto::Op::Interface> object which matches the 
 sub interface { 
     my ($self, $name) = @_;
 
-    return Class::Error->new("No such interface '$name'") unless defined $self->{$name};
+    return fatal_error("No such interface '$name'") unless defined $self->{$name};
 
     return Device::Firewall::PaloAlto::Op::Interface->_new($self->{$name});
 }
