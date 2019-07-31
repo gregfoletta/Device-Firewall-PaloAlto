@@ -2,6 +2,7 @@ package Device::Firewall::PaloAlto::Test;
 
 use Device::Firewall::PaloAlto::Test::SecPolicy;
 use Device::Firewall::PaloAlto::Test::NATPolicy;
+use Device::Firewall::PaloAlto::Test::FIB;
 
 use strict;
 use warnings;
@@ -129,6 +130,9 @@ sub sec_policy {
     my (%args) = @_;
     my %tags;
 
+    $args{protocol} = _proto_name_to_number($args{protocol}) || $args{protocol};
+    warn "Could not determine IP protocol from '$args{protocol}' - using this value" unless $args{protocol};
+
     # Some of the tags are long, so we translate between the argument to the sub ('arg') and the eventual
     # XML tag ('tag'). We also determine the default value.
     my @tag_translation = (
@@ -153,7 +157,7 @@ sub sec_policy {
     }
 
     return Device::Firewall::PaloAlto::Test::SecPolicy->_new(
-        $self->{fw}->_send_request(type => 'op', cmd => _gen_test_xml('security-policy-match', %tags))
+        $self->{fw}->_send_request(type => 'op', cmd => _gen_test_xml(['security-policy-match'], \%tags))
     );
 }
 
@@ -193,7 +197,6 @@ sub nat_policy {
         { arg => 'dst_port', tag => 'destination-port', default => 80 },
         { tag => 'protocol', default => 6 },
         { arg => 'egress_interface', tag => 'to-interface', default => undef },
-
     );
 
     for my $xlate (@tag_translation) {
@@ -212,52 +215,108 @@ sub nat_policy {
     }
 
     return Device::Firewall::PaloAlto::Test::NATPolicy->_new(
-        $self->{fw}->_send_request(type => 'op', cmd => _gen_test_xml('nat-policy-match', %tags))
+        $self->{fw}->_send_request(type => 'op', cmd => _gen_test_xml(['nat-policy-match'], \%tags))
     );
 }
 
 
-sub _gen_rulebase_test_xml {
-    my (%tags) = @_;
+sub _proto_name_to_number {
+    my ($proto) = @_;
 
-    my $xml_doc = XML::LibXML::Document->new(); 
-    my $policy_tag = $xml_doc->createElement('security-policy-match');
+    # If it's already a number, return it.
+    return $proto if $proto =~ m{^\d{1,3}$}xms;
 
-    for my $tag (keys %tags) {
-        my $text = $xml_doc->createTextNode($tags{$tag});
-        my $node = $xml_doc->createElement($tag);
-        $node->appendChild($text);
-        $policy_tag->appendChild($node);
-    }
+    # Table of common protocols
+    my %ip_protocols = (
+        icmp => 1,
+        igmp => 2,
+        ipip => 4,
+        ipinip => 4,
+        'ip-in-ip' => 4,
+        tcp => 6,
+        udp => 16,
+        rsvp => 46,
+        gre => 47,
+        esp => 50,
+        ah => 51,
+        icmpv6 => 58,
+        eigrp => 88,
+        ospf => 89,
+        pim => 103,
+        vrrp => 112,
+        l2tp => 115,
+        sctp => 132
+    );
 
-    my $root = $xml_doc->createElement('test');
-    $root->appendChild($policy_tag);
-
-    return $root->toString;
+    return $ip_protocols{$proto} // '';
 }
+
+=head2 fib_lookup
+
+    my $route = $fw->test->fib_lookup(
+        ip => '192.0.2.24',
+        virtual_router => 'default' 
+    );
+
+Takes an IP address and a virtual router and returns a L<Device::Firewall::PaloAlto::Test::FIB> object.
+
+=cut
+
+
+sub fib_lookup {
+    my $self = shift;
+    my %args = (
+        virtual_router => 'default',
+        @_
+    );
+
+    my $request_vars = {
+        'virtual-router' => $args{virtual_router},
+        ip => $args{ip}
+    };
+
+    return Device::Firewall::PaloAlto::Test::FIB->_new(
+       $self->{fw}->_send_request(type => 'op', cmd => _gen_test_xml([qw(routing fib-lookup)], $request_vars ))
+    );
+}
+
+
+
 
 # Generates the XML for an operational test. The first argument should be the
 # tag that determines the type of test, the second is a hashref with the tags and
-#
 sub _gen_test_xml {
-    # The first argument is the tag determinging the type of test
-    my $type_tag = shift;
-    # The rest of the arguments is the tag name/value hash
-    my %child_tags = @_;
+    # The first argument is an ARRAYREF with descending parent/child tags, ie
+    # <routing><fib-lookup> is ['routing', 'fib-lookup']
+    my ($type_tags_r, $leaf_tags_r) = @_;
 
+    # Create the document
     my $xml_doc = XML::LibXML::Document->new(); 
-    my $type = $xml_doc->createElement($type_tag);
 
-    for my $tag (keys %child_tags) {
-        my $text = $xml_doc->createTextNode($child_tags{$tag});
-        my $node = $xml_doc->createElement($tag);
-        $node->appendChild($text);
-        $type->appendChild($node);
+    # Create the leafs
+    my @leafs;
+    while (my ($tag, $value) = each %{ $leaf_tags_r }) {
+        my $leaf = $xml_doc->createElement($tag);
+        my $value = $xml_doc->createTextNode($value);
+        $leaf->appendChild($value);
+        push @leafs, $leaf;
     }
 
-    my $root = $xml_doc->createElement('test');
-    $root->appendChild($type);
+    # Create the branches and append to the last entry
+    my @branches;
+    for my $type ( @{ $type_tags_r }) {
+        my $branch = $xml_doc->createElement($type);
+        $branches[-1]->appendChild($branch) if defined $branches[-1];
+        push @branches, $branch;
+    }
 
+
+    # Append the children to the last branch
+    $branches[-1]->appendChild($_) foreach @leafs;
+
+    # Create the root and append the first branch to it
+    my $root = $xml_doc->createElement('test');
+    $root->appendChild($branches[0]);
     return $root->toString;
 }
 
