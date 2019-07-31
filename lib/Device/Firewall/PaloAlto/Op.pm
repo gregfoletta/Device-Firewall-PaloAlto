@@ -7,6 +7,7 @@ use 5.010;
 
 use Device::Firewall::PaloAlto::Op::SysInfo;
 use Device::Firewall::PaloAlto::Op::Interfaces;
+use Device::Firewall::PaloAlto::Op::InterfaceStats;
 use Device::Firewall::PaloAlto::Op::ARPTable;
 use Device::Firewall::PaloAlto::Op::VirtualRouter;
 use Device::Firewall::PaloAlto::Op::Tunnels;
@@ -99,6 +100,24 @@ sub interfaces {
     my $self = shift;
 
     return Device::Firewall::PaloAlto::Op::Interfaces->_new( $self->_send_op_cmd('show interface', 'all') );
+}
+
+=head2 interface_stats
+
+    my $int_stats = $fw->op->interface_stats('ethernet1/1');
+
+Returns an L<Device::Firewall::PaloAlto::Op::InterfaceStats> objects containing specific interface statistics.
+
+If no interface is specified, 'ethernet1/1' is used.
+
+=cut
+
+sub interface_stats {
+    my $self = shift;
+    my ($interface) = @_;
+    $interface //= 'ethernet1/1';
+
+    return Device::Firewall::PaloAlto::Op::InterfaceStats->_new( $self->_send_op_cmd('show interface', $interface) );
 }
 
 =head2 arp_table
