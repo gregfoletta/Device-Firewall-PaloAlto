@@ -12,9 +12,9 @@ use parent qw(Device::Firewall::PaloAlto::JSON);
 
 =encoding utf8
 
-=head1 SYNOPSIS
-
 =head1 DESCRIPTION
+
+This object represents the result of a forwarding information base (FIB) lookup on the firewall.
 
 =head1 ERRORS 
 
@@ -53,6 +53,53 @@ sub _new {
     return bless \%obj, $class;
 }
 
+=head2 interfaces
+
+    my @egress_interfaces = $fw->test->fib_lookup(ip => '192.0.2.1')->interfaces;
+
+Returns a list of the egress interfaces for the FIB entry. In most cases this will be a single entry,
+howeber it can be multiple of the FIB entry is an equal cost multipath (ECMP) entry.
+
+If the FIB lookup did not return an entry this will return an empty list.
+
+=cut
+
+sub interfaces {
+    my $self = shift;
+
+    return () unless $self->{fib_entry};
+
+    return map { $_->{interface} } @{ $self->{entries} };
+}
+
+=head2 next_hops
+
+    my @nh_ips = $fw->test->fib_lookup(ip => '192.0.2.1')->next_hops;
+
+Returns a list of the next-hop IPs for the FIB entry. In most cases this will be a single entry,
+howeber it can be multiple of the FIB entry is an equal cost multipath (ECMP) entry.
+
+If the FIB lookup did not return an entry this will return an empty list.
+
+=cut
+
+sub next_hops {
+    my $self = shift;
+
+    return () unless $self->{fib_entry};
+
+    return map { $_->{ip} } @{ $self->{entries} };
+}
+
+=head2 is_ecmp
+
+    my $is_ecmp = $fw->test->fib_lookup(ip => '192.0.2.1')->ecmp
+
+Returns true if the FIB entry is an ECMP route, otherwise returns false.
+
+=cut
+
+sub is_ecmp { return !!$_[0]->{ecmp} }
 
 1;
 

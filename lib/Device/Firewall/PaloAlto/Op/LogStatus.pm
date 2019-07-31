@@ -16,9 +16,10 @@ use DateTime;
 
 =encoding utf8
 
-=head1 SYNOPSIS
-
 =head1 DESCRIPTION
+
+This module represents the logging status of a Palo Alto firewall. It contains methods to retreive
+the sequence numbers and totals for each individual log type (traffic, threat, etc) sent by the firewall to Panorama or log collectors.
 
 =cut
 
@@ -38,20 +39,6 @@ sub _new {
     return bless \%log_obj, $class;
 }
 
-
-=head2 times 
-
-    my ($log_create_time, $log_sent_time) = $fw->op->logging_status->times( 'system' );
-
-Returns a list of two containing two L<DateTime> objects for a specific type of log.
-
-The first item is the last time a log was created. The second item is the last time a log was sent.
-
-If the firewall is not connected to a log collector, an empty list will be returned.
-
-=cut
-
-sub times { }
 
 =head2 seq_numbers
 

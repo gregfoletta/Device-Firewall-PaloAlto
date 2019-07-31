@@ -12,11 +12,9 @@ use parent qw(Device::Firewall::PaloAlto::JSON);
 
 =encoding utf8
 
-=head1 SYNOPSIS
-
 =head1 DESCRIPTION
 
-=head1 ERRORS 
+This module represents a Palo Alo interface, both physical and logical.
 
 =head1 METHODS
 

@@ -111,6 +111,9 @@ This function takes arguments related to a traffic flow through the firewall and
 
 It returns a L<Device::Firewall::PaloAlto::Test::SecPolicy> object.
 
+The function will attempt to use a protocol specified as a case-insensitive string. Valid examples include 'tcp', 'udp', 'esp', and 'pim'.
+It will warn if it cannot determine the protocol. When in doubt, use the protocol's decimal value rather than a string.
+
     my $result = $fw->test->sec_policy {
         from => 'Trust',
         to => 'Untrust',
@@ -129,9 +132,6 @@ sub sec_policy {
     my $self = shift;
     my (%args) = @_;
     my %tags;
-
-    $args{protocol} = _proto_name_to_number($args{protocol}) || $args{protocol};
-    warn "Could not determine IP protocol from '$args{protocol}' - using this value" unless $args{protocol};
 
     # Some of the tags are long, so we translate between the argument to the sub ('arg') and the eventual
     # XML tag ('tag'). We also determine the default value.
@@ -155,6 +155,10 @@ sub sec_policy {
         # Set a default value if not supplied to the sub.
         $tags{ $xlate->{tag} } = $args{$arg} // $xlate->{default};
     }
+
+    # Do our best to translate betwee
+    $tags{protocol} = (_proto_name_to_number($tags{protocol}) || $tags{protocol});
+    warn "Could not determine IP protocol from '$tags{protocol}' - using this value" unless $tags{protocol};
 
     return Device::Firewall::PaloAlto::Test::SecPolicy->_new(
         $self->{fw}->_send_request(type => 'op', cmd => _gen_test_xml(['security-policy-match'], \%tags))
