@@ -6,7 +6,7 @@ use 5.010;
 
 require Exporter;
 our @ISA = qw(Exporter);
-our @EXPORT_OK = qw(ERROR);
+our @EXPORT_OK = qw(ERROR fatal_error);
 
 use Class::Error;
 use Carp;
@@ -26,7 +26,7 @@ This is a parent class containing functions relating to errors.
 
 =cut
 
-
+# FIXME: uppercase subs are reserved. This needs to be removed and replaced with 'fatal_error' below.
 sub ERROR {
     my ($errstring, $errno) = @_;
 
@@ -38,6 +38,17 @@ sub ERROR {
     return Class::Error->new($errstring, $errno);
 }
 
+
+sub fatal_error {
+    my ($errstring, $errno) = @_;
+
+    $errno //= 0;
+
+    # Are we in a one liner? If so, we croak out straight away
+    croak $errstring if in_one_liner();
+
+    return Class::Error->new($errstring, $errno, '');
+}
 
 sub in_one_liner {
     my $level = 0;

@@ -14,6 +14,7 @@ use Device::Firewall::PaloAlto::Op::GlobalCounters;
 use Device::Firewall::PaloAlto::Op::IPUserMaps;
 use Device::Firewall::PaloAlto::Op::HA;
 use Device::Firewall::PaloAlto::Op::NTP;
+use Device::Firewall::PaloAlto::Op::LogStatus;
 
 use XML::LibXML;
 
@@ -218,6 +219,20 @@ sub ntp {
     my $self = shift;
 
     return Device::Firewall::PaloAlto::Op::NTP->_new( $self->_send_op_cmd('show ntp') );
+}
+
+=head2 logging_status
+
+    my $log_status = $fw->op->logging_status
+
+Returns a L<Device::Firewall::PaloAlto::Op::LogStatus> objects represent the current logging status of the firewall
+
+=cut
+
+sub logging_status {
+    my $self = shift;
+
+    return Device::Firewall::PaloAlto::Op::LogStatus->_new( $self->_send_op_cmd('show logging-status') );
 }
 
 

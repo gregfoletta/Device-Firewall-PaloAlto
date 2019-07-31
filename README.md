@@ -4,7 +4,7 @@ Device::Firewall::PaloAlto - Interact with the Palo Alto firewall API
 
 # VERSION
 
-version 0.1.8
+version 0.1.9
 
 # SYNOPSIS
 
